@@ -19,3 +19,5 @@ Prepare to install Python 3.11.5
 - sudo apt install libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev
 - sudo apt install tk-dev libgdbm-dev libc6-dev libbz2-dev zlib1g-dev 
 - sudo apt install xz-utils libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+When all done, run pyenv install 3.11.5 (or whatever version).
+Once completed, run pyenv init and edit .bashrc file accordingly.
