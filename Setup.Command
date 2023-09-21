@@ -5,3 +5,12 @@ to change console screen text/font/size
 - VGA
 - 16x32
 
+Connect Bluetooth mouse from command line
+
+- bluetoothctl
+- scan on
+- pair <mac address of mouse>
+- trust <mac address of mouse> # to auto reconnect
+- connect <mac address of mouse> # to connect and activate mouse
+- exit # exit bluetooth mode
+
