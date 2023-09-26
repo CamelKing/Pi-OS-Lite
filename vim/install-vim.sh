@@ -1,140 +1,116 @@
 #!/bin/bash
-# execute this script filei using Bourne shell
+# execute this script file using Bourne shell
 
-function Make_Directories {
+source "$(dirname $0)/../share/colors.sh"    # color settings
 
-    # $@ array of directories to be created
+source "$(dirname $0)/../share/common.sh"    # shared functions
 
-    echo -e "$INFO ===> Creating directories... $NORM"
+function Create_Symlink {
 
-    if [[ "$Test_Mode" ]]; then
-        echo -e "$READ Command to execute is: $NORM"
-    fi
+    # split passed in array into 2 equal size array
+    # create symlink using matching elements from the two arrays
+    # first array being the destination files/directories being link to
+    # second array being path name of the symlinks
+    # usage: Create_Symlinks "$_test_mode" "${_destination[@]}" "${_target[@]}"
+    # $1 test mode indicator, 't' for test mode
+    # $@ after shift 1 = combination of $_destination $_target arrays
 
-    local _dir
-    local _command="mkdir -p -v"
-    for _dir in "$@"; do
-        if [[ ! -z "$_dir" ]]; then
-             if [[ "$Test_Mode" ]]; then
-                 echo -e "$WARN $_command $_dir $NORM"
-             else
-                 eval "$_command $_dir"
-             fi
-        fi
+
+    local _test_mode=$1
+    shift 1
+    local _input=("$@")
+    local _len=$(( ${#_input[@]} / 2 ))
+    local _destination=("${_input[@]:0:$_len}")
+    local _target=("${_input[@]:$_len}")
+    local _destine
+    for i in "${!_destination[@]}"; do
+	_destine=${_destination[$i]}     
+        if [ -e ${_destination[$i]} ]; then
+            echo -e "ln -sf ${_destination[$i]} ${_target[$i]}"
+	else
+	    echo -e "$WARN Can not create symlink for $_destine $NORM"
+	fi
     done
+}
 
-    echo -e ""
+function Install_Vim {
+
+    # $1 test mode indicator, empty string means not test mode
+
+    local _test_mode=$1
+    
+    local _install_dir=$2
+    
+    local _dot_vim_dir="$HOME/.vim"
+
+    local _dirs_to_create=( \
+        "$_dot_vim_dir" \
+        "$_dot_vim_dir/swap" \
+        "$_dot_vim_dir/view" \
+        "$_dot_vim_dir/undo" \
+        "$_dot_vim_dir/backup" \
+        "$_dot_vim_dir/plugged" \
+        "$_dot_vim_dir/session" \
+        "$_dot_vim_dir/autoload" \
+        "$_dot_vim_dir/etc" \
+    )
+
+    local _symlink_destination=( \
+        "$_install_dir/.vimrc" \
+        "$_install_dir/after" \
+        "$_install_dir/colors" \
+        "$_install_dir/config" \
+        "$_install_dir/ftplugin" \
+    )
+
+     local _symlink_target=( \
+        "$HOME/.vimrc" \
+        "$_dot_vim_dir/after" \
+        "$_dot_vim_dir/colors" \
+        "$_dot_vim_dir/config" \
+        "$_dot_vim_dir/ftplugin" \
+    )
+
+    Execute "$_test_mode" \
+            "sudo apt remove vim -y" \
+            "===> Remove previous Vim installation" 
+
+    Remove_Directories "$_test_mode" "$_dot_vim_dir"
+
+    Execute "$_test_mode" \
+            "sudo apt install vim" \
+            "===> Start Vim installation" 
+
+    Make_Directories "$_test_mode" "${_dirs_to_create[@]}"
+
+    Create_Symlinks "$_test_mode" \
+	            "${_symlink_destination[@]}" \
+	            "${_symlink_target[@]}"
+
+
+    # download the plugin manager for vim
+    # local _plug_vim_url="https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
+    # local _plug_vim_dir="$_dot_vim_dir/autoload/plug.vim"
+    # cd $HOME > /dev/null
+    # eval "curl -fLo $_plug_vim_dir --create-dirs $_plug_vim_url"
+    # cd - > /dev/null
 
 }
 
-function Remove_Directories {
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
-    # $@ array of directories to be removed (recursive/forced)
+    # indicate script is being run directly	
 
-    echo -e "$INFO ===> Removing directories... $NORM"
+    Test_Mode=$(Check_Test_Mode "$@")   # check if TEST mode
 
-    if [[ "$Test_Mode" ]]; then
-        echo -e "$READ Command to execute is: $NORM"
-    fi
+    Print_Header_Banner "$Test_Mode"
 
-    local _dir
-    local _command="rm -f -r -v"
-    for _dir in "$@"; do
-        if [[ ! -z "$_dir" ]]; then
-             if [[ "$Test_Mode" ]]; then
-                 echo -e "$WARN $_command $_dir $NORM"
-             else
-                 eval "$_command $_dir"
-             fi
-        fi
-   done
+    Execute "$Test_Mode" \
+            "sudo apt update && sudo apt upgrade -y" \
+            "===> Updating system software" 
 
-    echo -e ""
-}
+    Install_Vim "$Test_Mode" "$(dirname $(readlink -f $0))" 
 
-function Execute {
+    Print_Footer_Banner
 
-    # print message and execute the command to install
-    # only echo the command if in test mode
-    # $1 - command to execute
-    # $2 - message to be printed as $INFO
-
-    echo -e "$INFO $2 $NORM"
-    if [[ "$Test_Mode" ]]; then
-        echo -e "$READ Command to execute is: \n$WARN $1 $NORM"
-    else
-        eval "$1"
-    fi
-    echo -e ""
-}
-
-
-function Print_Footer_Banner {
-
-    # calculate elapsed time
-    # print installation end message banner with elapsed time
-
-    local _duration=$SECONDS
-    local _elapsed=""
-    if [[ "$_duration" -gt "60" ]]; then
-        _elapsed="$(( _duration / 60 )) minutes and "
-    fi 
-    _elapsed="$_elapsed$(( _duration % 60 )) seconds"
-
-    echo -e ""
-    echo -e "$READ ============================================$NORM"
-    echo -e "$INFO PI OS Lite Development Mode Setup Completed $NORM"
-    echo -e "$INFO Elapsed Time: $_elapsed.                    $NORM"
-    echo -e "$READ ============================================$NORM"
-    echo -e ""
-}
-
-# import all color settings for message printing
-source "$(dirname $0)/colors.sh"
-
-# import all common routines and functions
-source "$(dirname $0)/common.sh"
-
-# check if in TEST mode or REAL installation
-Test_Mode=$(Check_Test_Mode "$@")
-
-# print starting banner and start clocking elapsed time
-Print_Header_Banner "$Test_Mode"
-
-# update system
-Message="===> Updating system software"
-Command="sudo apt update && sudo apt upgrade -y"
-Execute "$Command" "$Message"
-
-# need to make sure all standard vim file has been 
-# downloaded from git before installing vim
-Vim_Dir="$HOME/.vim"
-Dirs_To_Make=( \
-    "$Vim_Dir" \
-    "$Vim_Dir/swap" \
-    "$Vim_Dir/view" \
-    "$Vim_Dir/undo" \
-    "$Vim_Dir/backup" \
-    "$Vim_Dir/plugged" \
-    "$Vim_Dir/session" \
-    "$Vim_Dir/autoload" \
-    "$Vim_Dir/etc" \
-)
-
-# remove previous installation of vim
-Message="===> Remove previous Vim installation"
-Command="sudo apt remove vim -y"
-Execute "$Command" "$Message"
-
-Remove_Directories "$Vim_Dir"
-
-# install vim
-Message="===> Start Vim installation"
-Command="sudo apt install vim"
-Execute "$Command" "$Message"
-
-Make_Directories "${Dirs_To_Make[@]}"
-
-# prints ending banner with elapsed time
-Print_Footer_Banner
-
+fi	

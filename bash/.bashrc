@@ -112,7 +112,7 @@
     # console
     alias cls='clear'
     alias bye='logout'
-    alias down='shutdown'
+    alias down='shutdown now'
 
     # include alias definitions, if any
     if [ -f ~/.bash_aliases ]; then
