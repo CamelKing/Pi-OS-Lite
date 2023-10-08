@@ -31,33 +31,42 @@ function Check_Test_Mode {
     echo "$_result"
 }
 
-function Print_Header_Banner {
+function _Print_Header_Banner {
 
     # clock start time
     # print installation start message banner
     # $1 test mode indicator, 't' for test mode
+    # $@ (after shift 1) header banner messages
 
     local _test_mode=$1
+    shift 1
 
     SECONDS=0
 
     echo -e ""
     echo -e "$READ ============================================$NORM"
-    echo -e "$INFO PI OS Lite Development Mode Setup Starting  $NORM"
+
+    for _msg in "$@"; do
+	# Remove leading and trailing double quotes
+	_msg="${_msg%\"}"
+	_msg="${_msg#\"}"
+        echo -e "$INFO ${_msg} $NORM"
+    done
+
     if [[ "$_test_mode" == "t" ]]; then
-        echo -e ""
         echo -e "$WARN <<<< Currently in TEST MODE >>>> $NORM"
         echo -e "$WARN <<<< No Actual Installation >>>> $NORM"
-        echo -e ""
     fi
+
     echo -e "$READ ============================================$NORM"
     echo -e ""
 }
 
-function Print_Footer_Banner {
+function _Print_Footer_Banner {
 
     # calculate elapsed time
     # print installation end message banner with elapsed time
+    # $@ footer banner messages
 
     local _duration=$SECONDS
     local _elapsed=""
@@ -67,21 +76,48 @@ function Print_Footer_Banner {
     _elapsed="$_elapsed$(( _duration % 60 )) seconds"
 
     echo -e "$READ ============================================$NORM"
-    echo -e "$INFO PI OS Lite Development Mode Setup Completed $NORM"
-    echo -e "$INFO Elapsed Time: $_elapsed.                    $NORM"
+
+    for _msg in "$@"; do
+	# Remove leading and trailing double quotes
+	_msg="${_msg%\"}"
+	_msg="${_msg#\"}"
+        echo -e "$INFO ${_msg} $NORM"
+    done
+
+    echo -e "$READ Elapsed Time: $_elapsed.                    $NORM"
     echo -e "$READ ============================================$NORM"
     echo -e ""
+}
+
+
+function Print_Header_Banner {
+
+    # print main installation start message banner
+    
+    _Print_Header_Banner $1 "\"$2 Started\""
+
+}
+
+
+function Print_Main_Footer_Banner {
+
+    # print main installation end message banner
+
+    _Print_Footer_Banner "\"$1 Completed\""
+
 }
 
 function Make_Directories {
 
     # $1 test mode indicator, 't' for test mode
-    # $2... ($@ after shift 1) directories to be created (with parents)
+    # $2 name of the program for which these dirs are for
+    # $3... ($@ after shift 2) directories to be created (with parents)
 
     local _test_mode=$1
-    shift 1
+    local _program_name=$2
+    shift 2
 
-    echo -e "$INFO ===> Creating directories... $NORM"
+    echo -e "$INFO ===> Creating directories for $_program_name $NORM"
 
     if [[ "$_test_mode" == "t" ]]; then
         echo -e "$READ Command to execute is: $NORM"
@@ -108,10 +144,15 @@ function Remove_Directories {
     # $1 test mode indicator, 't' for test mode
     # $2... ($@ after shift 1) directories to be removed (recursive/forced)
 
-    local _test_mode=$1
-    shift 1
+    # $1 test mode indicator, 't' for test mode
+    # $2 name of the program for which these dirs are for
+    # $3... ($@ after shift 2) directories to be removed (recursive/forced)
 
-    echo -e "$INFO ===> Removing directories... $NORM"
+    local _test_mode=$1
+    local _program_name=$2
+    shift 2
+
+    echo -e "$INFO ===> Removing $_program_name directories $NORM"
 
     if [[ "$_test_mode" == "t" ]]; then
         echo -e "$READ Command to execute is: $NORM"
@@ -191,4 +232,15 @@ function Execute {
 }
 
 
+function Update_System {
 
+    # perform a total system update
+    # $1 test mode indicator, 't' for test mode
+
+    local _test_mode=$1
+
+    Execute "$Test_Mode" \
+            "sudo apt update && sudo apt upgrade -y" \
+            "===> Updating system software" 
+
+}

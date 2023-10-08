@@ -23,14 +23,16 @@ function Create_Symlink {
     local _destination=("${_input[@]:0:$_len}")
     local _target=("${_input[@]:$_len}")
     local _destine
+
     for i in "${!_destination[@]}"; do
-	_destine=${_destination[$i]}     
+        _destine=${_destination[$i]}     
         if [ -e ${_destination[$i]} ]; then
             echo -e "ln -sf ${_destination[$i]} ${_target[$i]}"
-	else
-	    echo -e "$WARN Can not create symlink for $_destine $NORM"
-	fi
+        else
+            echo -e "$WARN Can not create symlink for $_destine $NORM"
+        fi
     done
+
 }
 
 function Install_Vim {
@@ -38,6 +40,8 @@ function Install_Vim {
     # $1 test mode indicator, empty string means not test mode
 
     local _test_mode=$1
+
+    local _program_name="vim"
     
     local _install_dir=$2
     
@@ -73,15 +77,15 @@ function Install_Vim {
 
     Execute "$_test_mode" \
             "sudo apt remove vim -y" \
-            "===> Remove previous Vim installation" 
+            "===> Remove previous $_program_name installation" 
 
-    Remove_Directories "$_test_mode" "$_dot_vim_dir"
+    Remove_Directories "$_test_mode" "$_program_name" "$_dot_vim_dir"
 
     Execute "$_test_mode" \
             "sudo apt install vim" \
-            "===> Start Vim installation" 
+            "===> Start $_program_name installation" 
 
-    Make_Directories "$_test_mode" "${_dirs_to_create[@]}"
+    Make_Directories "$_test_mode" "$_program_name" "${_dirs_to_create[@]}"
 
     Create_Symlinks "$_test_mode" \
 	            "${_symlink_destination[@]}" \
@@ -103,14 +107,14 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
     Test_Mode=$(Check_Test_Mode "$@")   # check if TEST mode
 
-    Print_Header_Banner "$Test_Mode"
+    Project_Name="PI OS Lite Development Mode Setup"
 
-    Execute "$Test_Mode" \
-            "sudo apt update && sudo apt upgrade -y" \
-            "===> Updating system software" 
+    Print_Header_Banner $Test_Mode "$Project_Name" 
 
-    Install_Vim "$Test_Mode" "$(dirname $(readlink -f $0))" 
+    Update_System $Test_Mode
 
-    Print_Footer_Banner
+    Install_Vim $Test_Mode "$(dirname $(readlink -f $0))" 
+
+    Print_Main_Footer_Banner "$Project_Name" 
 
 fi	
