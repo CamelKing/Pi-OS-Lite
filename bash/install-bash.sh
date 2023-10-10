@@ -7,11 +7,17 @@ source "$(dirname $0)/../share/common.sh"    # shared functions
 
 function Install_Git_Prompt {
 
+    # $1 test mode indicator, empty string means not test mode
+    # $2 Installation directory, default is the same dir as script file
+
     local _test_mode=$1
 
+    local _install_Dir="$HOME/.sys/bash"
+    if [ "$#" -gt 1 ]; then                                              
+         _install_dir=$2                                                  
+    fi 
+
     local _program_name="git-prompt & git-completion"
-    
-    local _install_dir=$2
     
     # pull the git-prompt.sh from github repo
     local _download_git_prompt_command="curl --create-dirs -o $_install_dir/git-prompt.sh https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh"
@@ -35,7 +41,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
     Test_Mode=$(Check_Test_Mode "$@")   # check if TEST mode
 
-    Project_Name="PI OS Lite Development Mode Setup"
+    Project_Name="Raspberry PI Configuration Setup"
 
     Print_Header_Banner $Test_Mode "$Project_Name" 
 
