@@ -222,11 +222,16 @@ function Execute {
 
     local _test_mode=$1
 
+    # Remove leading and trailing double quotes
+    local _command=$2
+    _command="${_command%\"}"
+    _command="${_command#\"}"
+
     echo -e "$INFO $3 $NORM"
     if [[ "$_test_mode" == "t" ]]; then
-        echo -e "$READ Command to execute is: \n$WARN $2 $NORM"
+        echo -e "$READ Command to execute is: \n$WARN $_command $NORM"
     else
-        eval "$2"
+        eval "$_command"
     fi
     echo -e ""
 }
