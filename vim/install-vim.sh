@@ -5,47 +5,23 @@ source "$(dirname $0)/../share/colors.sh"    # color settings
 
 source "$(dirname $0)/../share/common.sh"    # shared functions
 
-function Create_Symlink {
-
-    # split passed in array into 2 equal size array
-    # create symlink using matching elements from the two arrays
-    # first array being the destination files/directories being link to
-    # second array being path name of the symlinks
-    # usage: Create_Symlinks "$_test_mode" "${_destination[@]}" "${_target[@]}"
-    # $1 test mode indicator, 't' for test mode
-    # $@ after shift 1 = combination of $_destination $_target arrays
-
-
-    local _test_mode=$1
-    shift 1
-    local _input=("$@")
-    local _len=$(( ${#_input[@]} / 2 ))
-    local _destination=("${_input[@]:0:$_len}")
-    local _target=("${_input[@]:$_len}")
-    local _destine
-
-    for i in "${!_destination[@]}"; do
-        _destine=${_destination[$i]}     
-        if [ -e ${_destination[$i]} ]; then
-            echo -e "ln -sf ${_destination[$i]} ${_target[$i]}"
-        else
-            echo -e "$WARN Can not create symlink for $_destine $NORM"
-        fi
-    done
-
-}
-
 function Install_Vim {
 
     # $1 test mode indicator, empty string means not test mode
+    # $2 Install to directory, default is the same dir as script file
 
     local _test_mode=$1
 
+    local _intall_to="$HOME/.sys/vim"
+    if [ "$#" -gt 1 ]; then
+        _install_to=$2    
+    fi
+    
+    local _install_from="$(dirname $(readlink -f $0))" 
+
     local _program_name="vim"
     
-    local _install_dir=$2
-    
-    local _dot_vim_dir="$HOME/.vim"
+    local _dot_vim_dir="$_install_to/.vim"
 
     local _dirs_to_create=( \
         "$_dot_vim_dir" \
@@ -59,45 +35,63 @@ function Install_Vim {
         "$_dot_vim_dir/etc" \
     )
 
-    local _symlink_destination=( \
-        "$_install_dir/.vimrc" \
-        "$_install_dir/after" \
-        "$_install_dir/colors" \
-        "$_install_dir/config" \
-        "$_install_dir/ftplugin" \
+    local _to_delete=( \
+        "$_install_to" \
+        "$_install_to/.vimrc" \
+        "$_install_to/.vim" \
     )
 
-     local _symlink_target=( \
-        "$HOME/.vimrc" \
+    local _copy_from=( \
+        "$_install_from/.vimrc" \
+        "$_install_from/after" \
+        "$_install_from/colors" \
+        "$_install_from/config" \
+        "$_install_from/ftplugin" \
+    )
+
+    local _copy_to=( \
+        "$_intall_to/.vimrc" \
         "$_dot_vim_dir/after" \
         "$_dot_vim_dir/colors" \
         "$_dot_vim_dir/config" \
         "$_dot_vim_dir/ftplugin" \
     )
 
+    local _symlink_destination=( \
+        "$_install_to/.vimrc" \
+        "$_install_to/.vim" \
+    )
+
+     local _symlink_target=( \
+        "$HOME/.vimrc" \
+        "$HOME/.vim" \
+    )
+
     Execute "$_test_mode" \
             "sudo apt remove vim -y" \
             "===> Remove previous $_program_name installation" 
 
-    Remove_Directories "$_test_mode" "$_program_name" "$_dot_vim_dir"
+    Remove_Symlinks "$_test_mode" \
+                    "$_program_name" \
+                    "${_symlink_target[@]}"
 
+    Remove_Directories "$_test_mode" \
+                       "$_program_name" \
+                       "${_to_delete[@]}"
+    
     Execute "$_test_mode" \
             "sudo apt install vim" \
             "===> Start $_program_name installation" 
 
     Make_Directories "$_test_mode" "$_program_name" "${_dirs_to_create[@]}"
 
+    Copy_Files "$_test_mode" \
+	             "${_copy_from[@]}" \
+	             "${_copy_to[@]}"
+
     Create_Symlinks "$_test_mode" \
 	            "${_symlink_destination[@]}" \
 	            "${_symlink_target[@]}"
-
-
-    # download the plugin manager for vim
-    # local _plug_vim_url="https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
-    # local _plug_vim_dir="$_dot_vim_dir/autoload/plug.vim"
-    # cd $HOME > /dev/null
-    # eval "curl -fLo $_plug_vim_dir --create-dirs $_plug_vim_url"
-    # cd - > /dev/null
 
 }
 
@@ -113,7 +107,8 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
     Update_System $Test_Mode
 
-    Install_Vim $Test_Mode "$(dirname $(readlink -f $0))" 
+    # Install_Vim $Test_Mode "$(dirname $(readlink -f $0))" 
+    Install_Vim $Test_Mode "$HOME/.sys/vim"
 
     Print_Main_Footer_Banner "$Project_Name" 
 

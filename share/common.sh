@@ -173,22 +173,59 @@ function Remove_Directories {
     echo -e ""
 }
 
-function Create_Symlinks {
+function Copy_Files {
 
     # $1 test mode indicator, 't' for test mode
-    # $2... ($@ after shift 1) combo of $_destination $_target arrays
-    # usage: Create_Symlinks "$_test_mode" "${_destination[@]}" "${_target[@]}"
+    # $2... ($@ after shift 1) combo of 
+    #       $_dirs_to_copy_from $_dirs_to_copy_to arrays
+    # usage: Copy_Files "$_test_mode" "${_copy_from[@]}" "${_copy_to[@]}"
 
-
-    local _destine
     local _command
     local _test_mode=$1
     shift 1
     local _input=("$@")
     # split into 2 equal size array 
     local _len=$(( ${#_input[@]} / 2 ))
-    local _destination=("${_input[@]:0:$_len}")
-    local _target=("${_input[@]:$_len}")
+    local _copy_from=("${_input[@]:0:$_len}")
+    local _copy_to=("${_input[@]:$_len}")
+
+    echo -e "$INFO ===> Copying Files/Directories... $NORM"
+
+    if [[ "$_test_mode" == "t" ]]; then
+        echo -e "$READ Command to execute is: $NORM"
+    fi
+
+    for i in "${!_copy_from[@]}"; do
+        if [ -e ${_copy_from[$i]} ]; then  # check file/dir exist
+            _command="cp -r ${_copy_from[$i]} ${_copy_to[$i]}"
+            if [[ "$_test_mode" == "t" ]]; then
+                echo -e "$WARN $_command $NORM"
+            else
+                eval "$_command"
+            fi
+	else
+	    echo -e "$WARN ${_copy_from[$i]} does not exist $NORM"
+	fi
+    done
+    echo -e ""
+}
+
+
+function Create_Symlinks {
+
+    # $1 test mode indicator, 't' for test mode
+    # $2... ($@ after shift 1) combo of $_target $_link_name arrays
+    # usage: Create_Symlinks "$_test_mode" "${_target[@]}" "${_link_name[@]}"
+
+
+    local _command
+    local _test_mode=$1
+    shift 1
+    local _input=("$@")
+    # split into 2 equal size array 
+    local _len=$(( ${#_input[@]} / 2 ))
+    local _target=("${_input[@]:0:$_len}")
+    local _link_name=("${_input[@]:$_len}")
 
     echo -e "$INFO ===> Creating symlinks... $NORM"
 
@@ -196,21 +233,53 @@ function Create_Symlinks {
         echo -e "$READ Command to execute is: $NORM"
     fi
 
-    for i in "${!_destination[@]}"; do
-	_destine=${_destination[$i]}     
-        if [ -e ${_destination[$i]} ]; then  # check file/dir exist
-            _command="ln -sfv ${_destination[$i]} ${_target[$i]}"
+    for i in "${!_target[@]}"; do
+        if [ -e ${_target[$i]} ]; then  # check file/dir exist
+            _command="ln -sfv ${_target[$i]} ${_link_name[$i]}"
             if [[ "$_test_mode" == "t" ]]; then
                 echo -e "$WARN $_command $NORM"
             else
                 eval "$_command"
             fi
-	else
-	    echo -e "$WARN $_destine does not exist, no symlink created $NORM"
-	fi
+        else
+            echo -e "$WARN ${_target[$i]} does not exist, no symlink created $NORM"
+        fi
     done
+
     echo -e ""
 }
+
+function Remove_Symlinks {
+
+    # $1 test mode indicator, 't' for test mode
+    # $2 name of the program for which these dirs are for
+    # $3... ($@ after shift 2) symlinks to be removed
+
+    local _test_mode=$1
+    local _program_name=$2
+    shift 2
+
+    echo -e "$INFO ===> Removing $_program_name symlinks $NORM"
+
+    if [[ "$_test_mode" == "t" ]]; then
+        echo -e "$READ Command to execute is: $NORM"
+    fi
+
+    local _dir
+    local _command="rm "
+    for _dir in "$@"; do
+        if [[ ! -z "$_dir" ]]; then
+             if [[ "$_test_mode" == "t" ]]; then
+                 echo -e "$WARN $_command $_dir $NORM"
+             else
+                 eval "$_command $_dir"
+             fi
+        fi
+    done
+
+    echo -e ""
+}
+
 
 function Execute {
 
