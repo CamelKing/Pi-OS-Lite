@@ -99,7 +99,7 @@ function Print_Header_Banner {
 }
 
 
-function Print_Main_Footer_Banner {
+function Print_Footer_Banner {
 
     # print main installation end message banner
 
@@ -216,7 +216,6 @@ function Create_Symlinks {
     # $1 test mode indicator, 't' for test mode
     # $2... ($@ after shift 1) combo of $_target $_link_name arrays
     # usage: Create_Symlinks "$_test_mode" "${_target[@]}" "${_link_name[@]}"
-
 
     local _command
     local _test_mode=$1

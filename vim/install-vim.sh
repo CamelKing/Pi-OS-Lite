@@ -110,6 +110,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # Install_Vim $Test_Mode "$(dirname $(readlink -f $0))" 
     Install_Vim $Test_Mode "$HOME/.sys/vim"
 
-    Print_Main_Footer_Banner "$Project_Name" 
+    Print_Footer_Banner "$Project_Name" 
 
 fi	
