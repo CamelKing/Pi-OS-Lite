@@ -5,7 +5,7 @@ source "$(dirname $0)/../share/colors.sh"    # color settings
 
 source "$(dirname $0)/../share/common.sh"    # shared functions
 
-function Install_Git_Prompt {
+function Install_Bash {
 
     # $1 test mode indicator, empty string means not test mode
     # $2 Installation directory, default is the same dir as script file
@@ -17,7 +17,7 @@ function Install_Git_Prompt {
          _install_dir=$2                                                  
     fi 
 
-    local _program_name="git-prompt & git-completion"
+    local _program_name="Bash"
     
     # pull the git-prompt.sh from github repo
     local _download_git_prompt_command="curl --create-dirs -o $_install_dir/git-prompt.sh https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh"
@@ -50,7 +50,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # for Raspberry Pi, storing all files on $HOME/.sys
     # Install_Dir="$(dirname $(readlink -f $0))"
     Install_Dir="$HOME/.sys/bash"
-    Install_Git_Prompt $Test_Mode $Install_Dir 
+    Install_Bash $Test_Mode $Install_Dir 
 
     Print_Main_Footer_Banner "$Project_Name" 
 
