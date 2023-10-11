@@ -296,7 +296,10 @@ function Execute {
     _command="${_command%\"}"
     _command="${_command#\"}"
 
-    echo -e "$INFO $3 $NORM"
+    if [ ! -z "$3" ]; then
+        echo -e "$INFO $3 $NORM"
+    fi
+
     if [[ "$_test_mode" == "t" ]]; then
         echo -e "$READ Command to execute is: \n$WARN $_command $NORM"
     else

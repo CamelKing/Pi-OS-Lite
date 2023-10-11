@@ -101,7 +101,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
     Test_Mode=$(Check_Test_Mode "$@")   # check if TEST mode
 
-    Project_Name="PI OS Lite Development Mode Setup"
+    Project_Name="Raspberry PI Configuration Setup"
 
     Print_Header_Banner $Test_Mode "$Project_Name" 
 
