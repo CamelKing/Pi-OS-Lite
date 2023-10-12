@@ -12,49 +12,42 @@ function Install_Git {
 
     local _test_mode=$1
 
-    local _install_Dir="$HOME/.sys/git"
-    if [ "$#" -gt 1 ]; then                                              
-         _install_dir=$2                                                  
-    fi 
+    local _install_dir="$HOME/.sys/git"
+    [ "$#" -gt 1 ] && _install_dir=$2
 
-    # Downloading / Upgrading Git
-    
     local _program_name="git"
- 
+
+    local _git_config_cmd=( \
+        "git config --global user.email \"kongyukloong@gmail.com\"" \
+        "git config --global user.name \"Camel King\"" \
+        "git config --global pull.rebase true" \
+        "git config -l" \
+        )
+
+
+    # Install git
+
     Execute "$_test_mode" \
-            "\"sudo apt install git -y\"" \
+            "sudo apt install git -y" \
             "===> Installing $_program_name" 
 
-    local _command="git config --global user.email \"kongyukloong@gmail.com\""
-    Execute "$_test_mode" "\"$_command\"" "===> Setting up $_program_name" 
+    # git config settings
 
-    local _command="git config --global user.name \"Camel King\""
-    Execute "$_test_mode" "\"$_command\"" 
-
-    local _command="git config --global pull.rebase true"
-    Execute "$_test_mode" "\"$_command\"" 
-
-    
+    Execute_Commands_List "$_test_mode" \
+            "===> Setting up $_program_name" \
+            "${_git_config_cmd[@]}"
+   
     # pull the git-prompt.sh from github repo
 
-    local _program_name="git-prompt"
-
-    local _download_git_prompt_command="curl --create-dirs -o $_install_dir/git-prompt.sh https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh"
-
     Execute "$_test_mode" \
-            "\"$_download_git_prompt_command\"" \
-            "===> Downloading $_program_name" 
+            "curl --create-dirs -o $_install_dir/git-prompt.sh https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh" \
+            "===> Downloading git-prompt" 
 
     # pull the git-completion.bash from github repo
     
-    local _program_name="git-completion"
-
-    local _download_git_completion_command="curl --create-dirs -o $_install_dir/git-completion.bash https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash"
-
     Execute "$_test_mode" \
-            "\"$_download_git_completion_command\"" \
-            "===> Downloading $_program_name" 
-
+            "curl --create-dirs -o $_install_dir/git-completion.bash https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash" \
+            "===> Downloading git-completion" 
 
 }
 
@@ -64,7 +57,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
     Test_Mode=$(Check_Test_Mode "$@")   # check if TEST mode
 
-    Project_Name="Raspberry PI Configuration Setup"
+    Project_Name="Raspberry PI Git Setup"
 
     Print_Header_Banner $Test_Mode "$Project_Name" 
 
@@ -73,6 +66,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # Install_Vim $Test_Mode "$(dirname $(readlink -f $0))" 
     Install_Git $Test_Mode "$HOME/.sys/git"
 
-    Print_Main_Footer_Banner "$Project_Name" 
+    Print_Footer_Banner "$Project_Name" 
 
 fi	

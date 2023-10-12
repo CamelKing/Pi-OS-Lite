@@ -93,12 +93,13 @@ function Make_Directories {
     local _program_name=$2
     shift 2
 
-    _execute_thru_array "$_test_mode" \
-                        "mkdir -pv" \
-                        "===> Creating directories for $_program_name" \
-                        "9" \
-                        "" \
-                        "$@"
+    _execute_thru_files_list \
+        "$_test_mode" \
+        "mkdir -pv" \
+        "===> Creating directories for $_program_name" \
+        "9" \
+        "" \
+        "$@"
 
 #     echo -e "$INFO ===> Creating directories for $_program_name $NORM"
 #
@@ -136,12 +137,13 @@ function Remove_Directories {
     local _program_name=$2
     shift 2
 
-    _execute_thru_array "$_test_mode" \
-                        "rm -rfv" \
-                        "===> Removing directories for $_program_name" \
-                        "2" \
-                        "not found" \
-                        "$@"
+    _execute_thru_files_list \
+        "$_test_mode" \
+        "rm -rfv" \
+        "===> Removing directories for $_program_name" \
+        "2" \
+        "not found" \
+        "$@"
  
 #}}}
 }
@@ -163,7 +165,7 @@ function Copy_Files {
     local _test_mode=$1
     shift 1
 
-    _execute_thru_array_pairs $_test_mode \
+    _execute_thru_files_pairs $_test_mode \
                               "cp -vr" \
                               "===> Copying Files/Directories..." \
                               $@
@@ -187,7 +189,7 @@ function Create_Symlinks {
     local _test_mode=$1
     shift 1
 
-    _execute_thru_array_pairs $_test_mode \
+    _execute_thru_files_pairs $_test_mode \
                               "ln -sfv" \
                               "===> Creating symlinks..." \
                               $@
@@ -207,12 +209,13 @@ function Remove_Symlinks {
     local _program_name=$2
     shift 2
 
-    _execute_thru_array "$_test_mode" \
-                        "rm -v" \
-                        "===> Removing symlinks for $_program_name" \
-                        "3" \
-                        "not found" \
-                        "$@"
+    _execute_thru_files_list \
+        "$_test_mode" \
+        "rm -v" \
+        "===> Removing symlinks for $_program_name" \
+        "3" \
+        "not found" \
+        "$@"
 
 #}}}
 }
@@ -238,6 +241,26 @@ function Execute {
     fi
 
     _execute "$_p1" "$_p2" "$_p3"
+
+#}}}
+}
+
+
+function Execute_Commands_List {
+#{{{1
+
+    # $1 test mode indicator, 't' for test mode
+    # $2 messages to be printed
+    # $3... ($@ after shift 2) Commands to execute
+
+    local _test_mode=$1
+    local _msg=$2
+    shift 2
+
+    _execute_commands_list \
+        "$_test_mode" \
+        "$_msg" \
+        "$@"
 
 #}}}
 }
@@ -420,16 +443,17 @@ function _check_items {
 }
 
 
-function _execute_thru_array_pairs {
+function _execute_thru_files_pairs {
 #{{{1
 
     # $1 - test mode indicator, 't' for test mode
     # $2 - command to execute on every pair of from..to
     # $3 - optional message to be printed as $INFO
+    #      "" to skip
     # $4... ($@ after shift 3) combo of $_from $_to arrays
     #
     # usage: 
-    # _execute_thru_array_pairs "$_test_mode" \
+    # _execute_thru_files_pairs "$_test_mode" \
     #                           "ln -svf" \
     #                           "Creating Symlink" \
     #                           "${_from[@]}" \
@@ -481,12 +505,13 @@ function _execute_thru_array_pairs {
 }
 
 
-function _execute_thru_array {
+function _execute_thru_files_list {
 #{{{1
 
     # $1 - test mode indicator, 't' for test mode
     # $2 - command to execute on every element of array
     # $3 - optional message to be printed as $INFO
+    #      "" to skip
     # $4 - optional check on array elements
     #      "" no check
     #      "1" check if file exist
@@ -499,11 +524,12 @@ function _execute_thru_array {
     # $6... ($@ after shift 4) array to be acted on
     #
     # usage: 
-    # _execute_thru_array "$_test_mode" \
-    #                     "rm -rfv" \
-    #                     "Removing Directories" \
-    #                     "2" \
-    #                     "${_dirs[@]}" 
+    # _execute_thru_files_list \
+    #   "$_test_mode" \
+    #   "rm -rfv" \
+    #   "Removing Directories" \
+    #   "2" \
+    #   "${_dirs[@]}" 
     #
     # IMPORTANT:
     # There would be no test on the items array,
@@ -553,6 +579,57 @@ function _execute_thru_array {
             fi
         fi
 
+    done
+
+    # spacing line at end of execution
+    echo -e ""
+
+#}}}
+}
+
+
+function _execute_commands_list {
+#{{{1
+
+    # $1 - test mode indicator, 't' for test mode
+    # $2 - optional message to be printed as $INFO
+    #      "" to skip
+    # $3... ($@ after shift 2) array to be acted on
+    #
+    # usage: 
+    # _execute_commands_list \
+    #   "$_test_mode" \
+    #   "Setting up git" \
+    #   "${_commands[@]}" 
+    #
+    
+    local _test_mode=$1
+    local _msg=$2
+    shift 2
+    local _commands=("$@")
+
+    # print verbose messages
+    if [ ! -z "$_msg" ]; then
+        echo -e "$INFO $_msg $NORM"
+    fi
+
+    # Using a variable to ensure this line 
+    # will be onl printed once, IF there
+    # is any action to be executed.
+    if [[ "$_test_mode" == "t" ]]; then
+        local _debug_msg="$DEBUG1 Command to execute is: $NORM\n"
+    fi
+
+    # loop thru commands list, print if test mode
+    # else execute
+    for i in "${!_commands[@]}"; do
+        if [[ "$_test_mode" == "t" ]]; then
+            echo -e "$_debug_msg$DEBUG2 ${_commands[$i]} $NORM"
+            # clear the string so no more one time msg
+            _debug_msg="" 
+        else
+            eval "${_commands[$i]}"
+        fi
     done
 
     # spacing line at end of execution
