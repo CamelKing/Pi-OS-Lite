@@ -35,10 +35,8 @@ function Install_Vim {
         "$_dot_vim_dir/etc" \
     )
 
-    local _to_delete=( \
+    local _dirs_to_delete=( \
         "$_install_to" \
-        "$_install_to/.vimrc" \
-        "$_install_to/.vim" \
     )
 
     local _copy_from=( \
@@ -62,7 +60,7 @@ function Install_Vim {
         "$_install_to/.vim" \
     )
 
-     local _symlink_target=( \
+    local _symlink_target=( \
         "$HOME/.vimrc" \
         "$HOME/.vim" \
     )
@@ -72,18 +70,20 @@ function Install_Vim {
             "===> Remove previous $_program_name installation" 
 
     Remove_Symlinks "$_test_mode" \
-                    "$_program_name" \
+                    "previous $_program_name" \
                     "${_symlink_target[@]}"
 
     Remove_Directories "$_test_mode" \
-                       "$_program_name" \
-                       "${_to_delete[@]}"
+                       "previous $_program_name" \
+                       "${_dirs_to_delete[@]}"
     
     Execute "$_test_mode" \
             "sudo apt install vim" \
             "===> Start $_program_name installation" 
 
-    Make_Directories "$_test_mode" "$_program_name" "${_dirs_to_create[@]}"
+    Make_Directories "$_test_mode" \
+                     "$_program_name" \
+                     "${_dirs_to_create[@]}"
 
     Copy_Files "$_test_mode" \
 	             "${_copy_from[@]}" \
@@ -101,7 +101,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
     Test_Mode=$(Check_Test_Mode "$@")   # check if TEST mode
 
-    Project_Name="Raspberry PI Configuration Setup"
+    Project_Name="Raspberry PI Vim Setup"
 
     Print_Header_Banner $Test_Mode "$Project_Name" 
 
