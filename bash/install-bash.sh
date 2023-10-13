@@ -12,26 +12,11 @@ function Install_Bash {
 
     local _test_mode=$1
 
-    local _install_Dir="$HOME/.sys/bash"
-    if [ "$#" -gt 1 ]; then                                              
-         _install_dir=$2                                                  
-    fi 
+    local _install_dir="$HOME/.sys/bash"
+    [ "$#" -gt 1 ] && _install_dir=$2 
 
     local _program_name="Bash"
     
-    # pull the git-prompt.sh from github repo
-    local _download_git_prompt_command="curl --create-dirs -o $_install_dir/git-prompt.sh https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh"
-
-    Execute "$_test_mode" \
-            "\"$_download_git_prompt_command\"" \
-            "===> Pulling git-prompt.sh from github repo" 
-
-    # pull the git-completion.bash from github repo
-    local _download_git_completion_command="curl --create-dirs -o $_install_dir/git-completion.bash https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash"
-
-    Execute "$_test_mode" \
-            "\"$_download_git_completion_command\"" \
-            "===> Pulling git-completion.bash from github repo" 
 
 }
 
@@ -47,10 +32,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
     Update_System $Test_Mode
 
-    # for Raspberry Pi, storing all files on $HOME/.sys
-    # Install_Dir="$(dirname $(readlink -f $0))"
-    Install_Dir="$HOME/.sys/bash"
-    Install_Bash $Test_Mode $Install_Dir 
+    Install_Bash $Test_Mode "$HOME/.sys/bash" 
 
     Print_Main_Footer_Banner "$Project_Name" 
 
