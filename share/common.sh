@@ -31,17 +31,17 @@ function Check_Test_Mode {
     #     if [[ "$Test_Mode" ]];
  
 
-    local _result="f"
+    local _test_mode="f"
 
     for arg in "$@"
     do
         if [[ "$arg" == "-T" || "$arg" == "-t" ]]; then
-            _result="t"
+            _test_mode="t"
             break
         fi
     done
 
-    echo "$_result"
+    echo "$_test_mode"
 
 #}}}
 } 
@@ -59,7 +59,6 @@ function Print_Header_Banner {
     #   Print_Header_Banner "$Test_Mode" "Raspberry Pi OS Setup"
 
     _print_header_banner $1 "\"$2 Started\""
-
 
 #}}}
 }
@@ -86,41 +85,23 @@ function Make_Directories {
 #{{{1
 
     # $1 test mode indicator, 't' for test mode
-    # $2 name of the program for which these dirs are for
+    # $2 optional program name to be printed
+    #    "" to skip and print default create directories message
     # $3... ($@ after shift 2) directories to be created (with parents)
 
     local _test_mode=$1
-    local _program_name=$2
+    local _msg="===> Creating directories" 
+    [ ! -z "$2" ] && _msg="$_msg for $2" 
     shift 2
 
+    # no error message is failed to make directories
     _execute_thru_files_list \
-        "$_test_mode" \
+        $_test_mode \
         "mkdir -pv" \
-        "===> Creating directories for $_program_name" \
+        "$_msg" \
         "9" \
         "" \
         "$@"
-
-#     echo -e "$INFO ===> Creating directories for $_program_name $NORM"
-#
-    # if [[ "$_test_mode" == "t" ]]; then
-        # echo -e "$DEBUG1 Command to execute is: $NORM"
-    # fi
-#
-    # local _dir
-    # local _command="mkdir -p -v"
-    # for _dir in "$@"; do
-        # if [[ ! -z "$_dir" ]]; then
-             # if [[ "$_test_mode" == "t" ]]; then
-                 # echo -e "$DEBUG2 $_command $_dir $NORM"
-             # else
-                 # eval "$_command $_dir"
-             # fi
-        # fi
-    # done
-#
-    # echo -e ""
-#
 
 #}}}
 }
@@ -130,17 +111,19 @@ function Remove_Directories {
 #{{{1
 
     # $1 test mode indicator, 't' for test mode
-    # $2 name of the program for which these dirs are for
+    # $2 optional program name to be printed
+    #    "" to skip and print default copy file message
     # $3... ($@ after shift 2) directories to be removed (recursive/forced)
 
     local _test_mode=$1
-    local _program_name=$2
+    local _msg="===> Creating directories" 
+    [ ! -z "$2" ] && _msg="$_msg for $2" 
     shift 2
 
     _execute_thru_files_list \
-        "$_test_mode" \
+        $_test_mode \
         "rm -rfv" \
-        "===> Removing directories for $_program_name" \
+        "$_msg" \
         "2" \
         "not found" \
         "$@"
@@ -153,21 +136,28 @@ function Copy_Files {
 #{{{1
 
     # $1 test mode indicator, 't' for test mode
-    # $2... ($@ after shift 1) combo of $_from $_to arrays
+    # $2 optional program name to be printed
+    #    "" to skip and print default copy file message
+    # $3... ($@ after shift 2) combo of $_from $_to arrays
     #
     # usage: 
-    # Copy_Files "$_test_mode" "${_from[@]}" "${_to[@]}"
+    # Copy_Files $_test_mode \
+    #            $_msg \
+    #            "${_from[@]}" \
+    #            "${_to[@]}"
     #
     # IMPORTANT:
     # ASSUME the passed in array $2... can be split into two equal arrays
 
 
     local _test_mode=$1
-    shift 1
+    local _msg="===> Copying files/directories" 
+    [ ! -z "$2" ] && _msg="$_msg for $2" 
+    shift 2
 
     _execute_thru_files_pairs $_test_mode \
                               "cp -vr" \
-                              "===> Copying Files/Directories..." \
+                              "$_msg" \
                               $@
 
 #}}}
@@ -178,20 +168,27 @@ function Create_Symlinks {
 #{{{1
 
     # $1 test mode indicator, 't' for test mode
-    # $2... ($@ after shift 1) combo of $_target $_link_name arrays
+    # $2 optional program name to be printed
+    #    "" to skip and print default create symlink message
+    # $3... ($@ after shift 2) combo of $_target $_link_name arrays
     #
     # usage: 
-    # Create_Symlinks "$_test_mode" "${_target[@]}" "${_link_name[@]}"
+    # Create_Symlinks $_test_mode \
+    #                 $_msg \
+    #                 "${_target[@]}" \
+    #                 "${_link_name[@]}"
     #
     # IMPORTANT:
     # ASSUME the passed in array $2... can be split into two equal arrays
 
     local _test_mode=$1
-    shift 1
+    local _msg="===> Creating symlinks" 
+    [ ! -z "$2" ] && _msg="$_msg for $2" 
+    shift 2
 
     _execute_thru_files_pairs $_test_mode \
                               "ln -sfv" \
-                              "===> Creating symlinks..." \
+                              "$_msg" \
                               $@
 
 #}}}
@@ -202,19 +199,23 @@ function Remove_Symlinks {
 #{{{1
 
     # $1 test mode indicator, 't' for test mode
-    # $2 name of the program for which these dirs are for
+    # $2 optional program name to be printed
+    #    "" to skip and print default create symlink message
     # $3... ($@ after shift 2) symlinks to be removed
 
     local _test_mode=$1
-    local _program_name=$2
+    local _msg="===> Removing symlinks" 
+    [ ! -z "$2" ] && _msg="$_msg for $2" 
     shift 2
 
+
+    # no error message is failed to make directories
     _execute_thru_files_list \
-        "$_test_mode" \
+        $_test_mode \
         "rm -v" \
-        "===> Removing symlinks for $_program_name" \
+        "$_msg" \
         "3" \
-        "not found" \
+        "" \
         "$@"
 
 #}}}
@@ -258,7 +259,7 @@ function Execute_Commands_List {
     shift 2
 
     _execute_commands_list \
-        "$_test_mode" \
+        $_test_mode \
         "$_msg" \
         "$@"
 
@@ -274,7 +275,7 @@ function Update_System {
 
     local _test_mode=$1
 
-    _execute "$_test_mode" \
+    _execute $_test_mode \
              "sudo apt update && sudo apt upgrade -y" \
              "===> Updating system software" 
 
@@ -299,7 +300,7 @@ function _print_header_banner {
     #       else every space will be printed on a new line
     #
     # usage: 
-    #   _print_header_banner "$_test_mode" \
+    #   _print_header_banner $_test_mode \
     #                        "\"$_message_with_space\"" \
     #                        "$_message_with_no_space"
 
@@ -453,7 +454,7 @@ function _execute_thru_files_pairs {
     # $4... ($@ after shift 3) combo of $_from $_to arrays
     #
     # usage: 
-    # _execute_thru_files_pairs "$_test_mode" \
+    # _execute_thru_files_pairs $_test_mode \
     #                           "ln -svf" \
     #                           "Creating Symlink" \
     #                           "${_from[@]}" \
@@ -525,7 +526,7 @@ function _execute_thru_files_list {
     #
     # usage: 
     # _execute_thru_files_list \
-    #   "$_test_mode" \
+    #   $_test_mode \
     #   "rm -rfv" \
     #   "Removing Directories" \
     #   "2" \
@@ -598,7 +599,7 @@ function _execute_commands_list {
     #
     # usage: 
     # _execute_commands_list \
-    #   "$_test_mode" \
+    #   $_test_mode \
     #   "Setting up git" \
     #   "${_commands[@]}" 
     #

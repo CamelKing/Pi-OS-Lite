@@ -6,9 +6,13 @@ source "$(dirname $0)/../share/colors.sh"    # color settings
 source "$(dirname $0)/../share/common.sh"    # shared functions
 
 function Install_Vim {
+#{{{1
 
     # $1 test mode indicator, empty string means not test mode
     # $2 Install to directory, default is the same dir as script file
+    #
+    # Usage:
+    #       Install_Vim $Test_Mode "$HOME/.sys/vim"
 
     local _test_mode=$1
 
@@ -65,34 +69,37 @@ function Install_Vim {
         "$HOME/.vim" \
     )
 
-    Execute "$_test_mode" \
+    Execute $_test_mode \
             "sudo apt remove vim -y" \
             "===> Remove previous $_program_name installation" 
 
-    Remove_Symlinks "$_test_mode" \
+    Remove_Symlinks $_test_mode \
                     "previous $_program_name" \
                     "${_symlink_target[@]}"
 
-    Remove_Directories "$_test_mode" \
+    Remove_Directories $_test_mode \
                        "previous $_program_name" \
                        "${_dirs_to_delete[@]}"
     
-    Execute "$_test_mode" \
+    Execute $_test_mode \
             "sudo apt install vim" \
-            "===> Start $_program_name installation" 
+            "===> Installing $_program_name" 
 
-    Make_Directories "$_test_mode" \
+    Make_Directories $_test_mode \
                      "$_program_name" \
                      "${_dirs_to_create[@]}"
 
-    Copy_Files "$_test_mode" \
+    Copy_Files $_test_mode \
+               $_program_name \
 	             "${_copy_from[@]}" \
 	             "${_copy_to[@]}"
 
-    Create_Symlinks "$_test_mode" \
-	            "${_symlink_destination[@]}" \
-	            "${_symlink_target[@]}"
+    Create_Symlinks $_test_mode \
+                    $_program_name \
+	                  "${_symlink_destination[@]}" \
+	                  "${_symlink_target[@]}"
 
+#}}}
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
