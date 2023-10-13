@@ -6,7 +6,6 @@ source "$(dirname $0)/../share/colors.sh"    # color settings
 source "$(dirname $0)/../share/common.sh"    # shared functions
 
 function Install_Vim {
-#{{{1
 
     # $1 test mode indicator, empty string means not test mode
     # $2 Install to directory, default is the same dir as script file
@@ -99,7 +98,6 @@ function Install_Vim {
 	                  "${_symlink_destination[@]}" \
 	                  "${_symlink_target[@]}"
 
-#}}}
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

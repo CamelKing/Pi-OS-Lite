@@ -116,7 +116,7 @@ function Remove_Directories {
     # $3... ($@ after shift 2) directories to be removed (recursive/forced)
 
     local _test_mode=$1
-    local _msg="===> Creating directories" 
+    local _msg="===> Removing directories" 
     [ ! -z "$2" ] && _msg="$_msg for $2" 
     shift 2
 
