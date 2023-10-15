@@ -23,6 +23,9 @@ function Install_Vim {
     local _install_from="$(dirname $(readlink -f $0))" 
 
     local _program_name="vim"
+
+    # install vim-nox variants to get python3 support in vim
+    local _apt_package_name="vim-nox"
     
     local _dot_vim_dir="$_install_to/.vim"
 
@@ -68,9 +71,16 @@ function Install_Vim {
         "$HOME/.vim" \
     )
 
-    Execute $_test_mode \
-            "sudo apt remove vim -y" \
-            "===> Remove previous $_program_name installation" 
+    # remove vim and vim-nox, just in case newly setup pi
+    local _remove_cmd=( \
+        "sudo apt remove vim -y" \
+        "sudo apt remove $_apt_package_name -y" \
+    )
+
+    Execute_Commands_List \
+        $_test_mode \
+        "===> Remove previous $_program_name installation" \
+        "${_remove_cmd[@]}"
 
     Remove_Symlinks $_test_mode \
                     "previous $_program_name" \
@@ -81,7 +91,7 @@ function Install_Vim {
                        "${_dirs_to_delete[@]}"
     
     Execute $_test_mode \
-            "sudo apt install vim" \
+            "sudo apt install $_apt_package_name -y" \
             "===> Installing $_program_name" 
 
     Make_Directories $_test_mode \
