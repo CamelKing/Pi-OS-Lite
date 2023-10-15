@@ -83,6 +83,33 @@
 # }}}
 
 
+# git {{{1
+#----------------
+
+	# add all changes to staging
+	alias gitadd='git add .'
+	# check commit log
+	# alias gitlog='git log --oneline --decorate --all' 
+	alias gitlog="git log --pretty=tformat:'%C(white)%cs %C(cyan)%s %C(magenta)%d %Creset' -10"
+	# check staging status
+	alias gitstatus='git status --short'
+	# commit from staging
+	alias gitcommit='git commit -m'
+	# push to github
+	alias gitpush='git push origin main'
+
+	# git repo listing utilities
+	# root dir for current project .git
+	alias gitroot='git rev-parse --show-toplevel'
+	# list files in current dir tracked by git (excl .gitignore)
+	alias gitls='git ls-files -oc --exclude-standard'
+	# list repo files tracked by git (excl .gitignore) 
+	alias gitll='cd $(gitroot) >/dev/null && gitls && cd - >/dev/null'
+
+# }}}
+
+
+
 # Access website {{{1
 #----------------
 
