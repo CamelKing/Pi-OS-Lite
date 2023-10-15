@@ -90,7 +90,7 @@
 	alias gitadd='git add .'
 	# check commit log
 	# alias gitlog='git log --oneline --decorate --all' 
-	alias gitlog="git log --pretty=tformat:'%C(white)%cs %C(cyan)%s %C(auto)%d %Creset' -10"
+  alias gitlog="git log --pretty=tformat:'%<(9,trunc)%C(white)%ch %C(cyan)%s %C(auto)%d %Creset' --date=short -10"
 	# check staging status
 	alias gitstatus='git status --short'
 	# commit from staging
@@ -107,7 +107,6 @@
 	alias gitll='cd $(gitroot) >/dev/null && gitls && cd - >/dev/null'
 
 # }}}
-
 
 
 # Access website {{{1
