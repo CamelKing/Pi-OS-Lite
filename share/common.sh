@@ -317,8 +317,8 @@ function _print_header_banner {
     done
 
     if [[ "$_test_mode" == "t" ]]; then
-        echo -e "$DEBUG1 Currently in TEST MODE $NORM"
-        echo -e "$DEBUG1 No Actual Installation $NORM"
+        echo -e "$DEBUG Currently in TEST MODE $NORM"
+        echo -e "$DEBUG No Actual Installation $NORM"
     fi
 
     echo -e "$READ ============================================$NORM"
@@ -385,7 +385,8 @@ function _execute {
     # only print command if test mode, else execute it
     local _command=$(_strip_quotes "$2")
     if [[ "$_test_mode" == "t" ]]; then
-        echo -e "$DEBUG1 Command to execute is: \n$DEBUG2 $_command $NORM"
+        echo -e "$DEBUG Command to execute is:"
+        echo -e "$DEBUG $_command $NORM"
     else
         eval "$_command"
     fi
@@ -480,18 +481,27 @@ function _execute_thru_files_pairs {
     fi
 
     if [[ "$_test_mode" == "t" ]]; then
-        echo -e "$DEBUG1 Command to execute is: $NORM"
+        # echo -e "$DEBUG Command to execute is: $NORM"
+        local _debug_msg="$DEBUG Command to execute is: $NORM\n"
     fi
 
     # loop thru arrays, construct the full command 
     # line and execute/print it
     local _full_command_line
     for i in "${!_to[@]}"; do
-        if [ -e ${_from[$i]} ]; then  # check file/dir exist
-            _full_command_line="$_cmd ${_from[$i]} ${_to[$i]}"
-            if [[ "$_test_mode" == "t" ]]; then
-                echo -e "$DEBUG2 $_full_command_line $NORM"
-            else
+
+        # construct full command line
+        _full_command_line="$_cmd ${_from[$i]} ${_to[$i]}"
+
+        if [[ "$_test_mode" == "t" ]]; then
+            echo -e "$_debug_msg$DEBUG $_full_command_line $NORM"
+            # clear the string so no more one time msg
+            _debug_msg="" 
+        fi
+
+        # check file node exist before executing the command
+        if [ -e ${_from[$i]} ]; then  
+            if [[ "$_test_mode" != "t" ]]; then
                 eval "$_full_command_line"
             fi
         else
@@ -555,23 +565,26 @@ function _execute_thru_files_list {
     # will be onl printed once, IF there
     # is any action to be executed.
     if [[ "$_test_mode" == "t" ]]; then
-        local _debug_msg="$DEBUG1 Command to execute is: $NORM\n"
+        local _debug_msg="$DEBUG Command to execute is: $NORM\n"
     fi
 
     # loop thru arrays, construct the full command 
     # line and execute/print it
+    local _full_command_line
     for i in "${!_items[@]}"; do
 
-        local _full_command_line
+        # construct command and execute on item
+        _full_command_line="$_cmd ${_items[$i]}"
+
+        if [[ "$_test_mode" == "t" ]]; then
+            echo -e "$_debug_msg$DEBUG $_full_command_line $NORM"
+            # clear the string so no more one time msg
+            _debug_msg="" 
+        fi
+
         # perform a check on the item before executing command
         if [ "$(_check_items "$_chk" "${_items[$i]}")" = "t" ]; then
-            # construct command and execute on item
-            _full_command_line="$_cmd ${_items[$i]}"
-            if [[ "$_test_mode" == "t" ]]; then
-                echo -e "$_debug_msg$DEBUG2 $_full_command_line $NORM"
-                # clear the string so no more one time msg
-                _debug_msg="" 
-            else
+            if [[ "$_test_mode" != "t" ]]; then
                 eval "$_full_command_line"
             fi
         else
@@ -609,7 +622,7 @@ function _execute_commands_list {
     shift 2
     local _commands=("$@")
 
-    # print verbose messages
+    # print verbose messages if not blank
     if [ ! -z "$_msg" ]; then
         echo -e "$INFO $_msg $NORM"
     fi
@@ -618,14 +631,14 @@ function _execute_commands_list {
     # will be onl printed once, IF there
     # is any action to be executed.
     if [[ "$_test_mode" == "t" ]]; then
-        local _debug_msg="$DEBUG1 Command to execute is: $NORM\n"
+        local _debug_msg="$DEBUG Command to execute is: $NORM\n"
     fi
 
     # loop thru commands list, print if test mode
     # else execute
     for i in "${!_commands[@]}"; do
         if [[ "$_test_mode" == "t" ]]; then
-            echo -e "$_debug_msg$DEBUG2 ${_commands[$i]} $NORM"
+            echo -e "$_debug_msg$DEBUG ${_commands[$i]} $NORM"
             # clear the string so no more one time msg
             _debug_msg="" 
         else
