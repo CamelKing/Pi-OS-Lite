@@ -17,32 +17,18 @@ function Check_Test_Mode {
 #{{{1
 
     # check if in "Test" mode.
-    # test mode is indicated by -T or -t.
-    # will only print command rather than runs it.
-    # print an indicator message if Test Mode.
+    # test mode is indicated by '-T' or '-t'
 
     # $@ all arguments passed to the main script
-    # return test mode indicator as a string echoed
-    #        - non test mode would be empty string
-    #        - test mode would be returned as "test"
+    # return "t" if Test_Mode, "f" if not
 
     # usage Test_Mode=$(Check_Test_Mode $@)
     # subsequently can just test with: 
-    #     if [[ "$Test_Mode" ]];
+    #     if [[ "$Test_Mode" == "t" ]];
  
-
-    local _test_mode="f"
-
-    for arg in "$@"
-    do
-        if [[ "$arg" == "-T" || "$arg" == "-t" ]]; then
-            _test_mode="t"
-            break
-        fi
-    done
-
-    echo "$_test_mode"
-
+    local _arguments=( "$@" )
+    local _test_factors=( "-T" "-t" )
+    echo $(_check_argument _test_factors _arguments)
 #}}}
 } 
 
@@ -164,6 +150,43 @@ function Copy_Files {
 }
 
 
+function Backup_Files {
+#{{{1
+
+    # $1 test mode indicator, 't' for test mode
+    # $2 optional program name to be printed
+    #    "" to skip and print default backup file message
+    # $3... ($@ after shift 2) combo of $_from $_to arrays
+    #
+    # usage: 
+    # Backup_Files $_test_mode \
+    #              $_msg \
+    #              "${_from[@]}" \
+    #              "${_to[@]}"
+    #
+    # IMPORTANT:
+    # ASSUME the passed in array $2... can be split into two equal arrays
+
+
+    local _test_mode=$1
+    local _msg="===> Backup files/directories" 
+    [ ! -z "$2" ] && _msg="$_msg for $2" 
+    shift 2
+
+    _execute_thru_files_pairs $_test_mode \
+                              "cp -v -p" \
+                              "$_msg" \
+                              $@
+
+    _execute_thru_files_pairs $_test_mode \
+                              "rm -v -f" \
+                              "" \
+                              $@
+
+#}}}
+}
+
+
 function Create_Symlinks {
 #{{{1
 
@@ -187,7 +210,7 @@ function Create_Symlinks {
     shift 2
 
     _execute_thru_files_pairs $_test_mode \
-                              "ln -sfv" \
+                              "sudo ln -sfv" \
                               "$_msg" \
                               $@
 
@@ -652,5 +675,41 @@ function _execute_commands_list {
 #}}}
 }
 
+
+function _check_argument { 
+#{{{1
+
+    # check if any of the element of  __test_factors 
+    # array is in __arguments array.
+    # return "t" if found, "f" if none
+
+    # $1 - test factors array, passed in by nameref
+    # $2 - arguments array, passed in by nameref
+    # return "t" if found, "f" if none
+
+    # usage result=$(_check_argument _test_factor _arguments)
+    # note: _test_factor and _arguments would be name of 
+    #       variables in calling function, passed in by nameref
+    #       but non of them would be altered in this function
+ 
+
+    local -n __test_factors=$1
+    local -n __arguments=$2
+    local _found="f"
+
+    for i in "${!__arguments[@]}"; do
+        for j in "${!__test_factors[@]}"; do
+            if [[ ${__test_factors[$j]} == ${__arguments[$i]} ]]; then
+                _found="t"
+                break
+            fi
+        done
+        [ $_found == "t" ] && break
+    done
+
+    echo "$_found"
+
+#}}}
+} 
 
 
